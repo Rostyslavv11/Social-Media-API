@@ -1,19 +1,22 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import ValidationError
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import UserProfile
+from .permissions import IsProfileOwnerOrReadOnly
 from .serializers import (
     UserProfileListSerializer,
     UserProfileRetrieveSerializer,
-    UserProfileCreateUpdateSerializer
+    UserProfileCreateSerializer, UserProfileUpdateSerializer
 )
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileListSerializer
+    permission_classes = (IsAuthenticated, IsProfileOwnerOrReadOnly)
 
     def get_serializer_class(self):
 
@@ -21,8 +24,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return UserProfileListSerializer
         if self.action == "retrieve":
             return UserProfileRetrieveSerializer
-        if self.action == "update" or self.action == "partial_update" or self.action == "create":
-            return UserProfileCreateUpdateSerializer
+        if self.action == "update" or self.action == "partial_update":
+            return UserProfileUpdateSerializer
+        if self.action == "create":
+            return UserProfileCreateSerializer
 
         return UserProfileListSerializer
 
@@ -61,10 +66,47 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-@api_view(["GET"])
-def retrieve_my_profile(request):
-    if request.method == "GET":
-        my_profile = UserProfile.objects.get(user=request.user)
-        serializer = UserProfileRetrieveSerializer(my_profile)
-        return Response(serializer.data)
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow(self, request, pk=None):
+        target_profile = self.get_object()
+        current_profile = request.user.userprofile
 
+        if target_profile.user == request.user:
+            raise ValidationError({"detail": "You cannot follow yourself."})
+
+        current_profile.following.add(target_profile.user)
+        target_profile.followers.add(request.user)
+
+        return Response({"detail": f"You are now following {target_profile.user.username}."})
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow(self, request, pk=None):
+        target_profile = self.get_object()
+        current_profile = request.user.userprofile
+
+        current_profile.following.remove(target_profile.user)
+        target_profile.followers.remove(request.user)
+
+        return Response({"detail": f"You unfollowed {target_profile.user.username}."})
+
+
+class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserProfileRetrieveSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return UserProfile.objects.get(user=self.request.user)
+
+@api_view(["GET"])
+def get_following(request):
+    profile = request.user.userprofile
+    following = UserProfile.objects.filter(user__in=profile.following.all())
+    serializer = UserProfileListSerializer(following, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def get_followers(request):
+    profile = request.user.userprofile
+    followers = UserProfile.objects.filter(user__in=profile.followers.all())
+    serializer = UserProfileListSerializer(followers, many=True)
+    return Response(serializer.data)

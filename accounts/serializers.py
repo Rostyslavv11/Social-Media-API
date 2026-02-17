@@ -10,39 +10,80 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserProfileListSerializer(serializers.ModelSerializer):
+    first_name = serializers.ReadOnlyField(source="user.first_name")
+    last_name = serializers.ReadOnlyField(source="user.last_name")
+
     class Meta:
         model = UserProfile
-        fields = ("user",
-                  "profile_picture",
-                  "bio",
-                  "date_of_birth",
-                  "location",
-                  "gender"
+        fields = (
+            "id",
+            "user",
+            "first_name",
+            "last_name",
+            "profile_picture",
+            "bio",
+            "date_of_birth",
+            "location",
+            "gender",
+            "followers",
+            "following",
         )
-        read_only_fields = ("user",
-                  "profile_picture",
-                  "bio",
-                  "date_of_birth",
-                  "location",
-                  "gender"
+        read_only_fields = (
+            "id",
+            "user",
+            "followers",
+            "following",
         )
 
 
 class UserProfileRetrieveSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+
     class Meta:
         model = UserProfile
-        fields = ("user", "profile_picture", "bio", "date_of_birth", "location", "gender")
-
-
-class UserProfileCreateUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ("user",
-                  "profile_picture",
-                  "bio",
-                  "date_of_birth",
-                  "location",
-                  "gender"
+        fields = (
+            "id",
+            "user",
+            "profile_picture",
+            "bio",
+            "date_of_birth",
+            "location",
+            "gender",
+            "followers",
+            "following",
         )
-        read_only_fields = ("user",)
+        read_only_fields = ("id", "user", "followers", "following")
+
+
+class UserProfileCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = (
+            "id",
+            "user",
+            "profile_picture",
+            "bio",
+            "date_of_birth",
+            "location",
+            "gender",
+            "followers",
+            "following",
+        )
+        read_only_fields = ("id", "user", "followers", "following")
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = (
+            "id",
+            "user",
+            "profile_picture",
+            "bio",
+            "date_of_birth",
+            "location",
+            "gender",
+            "followers",
+            "following",
+        )
+        read_only_fields = ("id", "user", "followers", "following")

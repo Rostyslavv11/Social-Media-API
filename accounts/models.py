@@ -40,6 +40,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
+
 class UserProfile(models.Model):
     class Gender(models.TextChoices):
         MALE = "Male"
@@ -51,4 +52,5 @@ class UserProfile(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     location = models.CharField(max_length=50, blank=True)
     gender = models.CharField(max_length=50, blank=True, choices=Gender.choices)
-
+    followers = models.ManyToManyField(User, related_name="followers", blank=True)
+    following = models.ManyToManyField(User, related_name="following", blank=True)
