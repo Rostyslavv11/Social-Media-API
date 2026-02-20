@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+media
+profile_pictures
+*.log
+README.md
