@@ -124,3 +124,28 @@ Comment create response:
   "updated_at": "2026-02-17T19:05:00Z"
 }
 ```
+
+## Run With Docker
+
+1. Create environment file:
+```bash
+cp .env.example .env
+```
+PowerShell alternative:
+```powershell
+Copy-Item .env.example .env
+```
+
+2. Ensure `.env` has a valid `SECRET_KEY` value.
+
+3. Build and start:
+```bash
+docker compose up --build
+```
+
+4. API will be available at:
+`http://localhost:8000/`
+
+Notes:
+- Migrations run automatically on container start.
+- Source code is mounted into the container for development.
